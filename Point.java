@@ -29,6 +29,10 @@ public class Point{
     return posX + " " + posY;
   }
 
+  public boolean isEqual(Point p){
+    return ((p.getX() == this.posX)&&(p.getY() == this.posY));
+  }
+
   public static void main(String args[]){
     Point l = new Point(0,0,0);
     System.out.println(l);
