@@ -8,13 +8,15 @@ import java.util.Random;
 public class SimulationView extends JPanel{
 
   ArrayList<Point> points = new ArrayList<Point>();
+  ArrayList<Point> convexHull = new ArrayList<Point>();
+
   final int xSize;
   final int ySize;
 
   public SimulationView(int xSize, int ySize){
     this.xSize = xSize;
     this.ySize = ySize - 200;
-    this.setBackground(Color.red);
+    this.setBackground(Color.white);
     this.setPreferredSize(new Dimension(1200, 500));
   }
 
@@ -29,23 +31,41 @@ public class SimulationView extends JPanel{
       g2.drawLine(points.get(i).getX(), points.get(i).getY(),points.get(i).getX(),points.get(i).getY());
     }
 
+    for(int i = 0; i < convexHull.size() - 1; i++){
+      g2.setColor(Color.black);
+      g2.drawLine(convexHull.get(i).getX(), convexHull.get(i).getY(),convexHull.get(i + 1).getX(), convexHull.get(i + 1).getY());
+    }
+      if(convexHull.size() != 0)
+      g2.drawLine(convexHull.get(convexHull.size() - 1).getX(), convexHull.get(convexHull.size() - 1).getY(), convexHull.get(0).getX(), convexHull.get(0).getY());
+
   }
 
  public void quickHull(){
 
-   ArrayList<Point> convexHull = new ArrayList<Point>();
+   this.convexHull = new ArrayList<Point>();
 
-   // Obtener los puntos más alejados
-   Point maxPoint = new Point(-999999, 0, 0);
-   Point minPoint = new Point(999999, 0, 0);
-   for (int i = 0; i < points.size(); i++){
-     if(points.get(i).getX() > maxPoint.getX()){
-       maxPoint = points.get(i);
-     }
-     if(points.get(i).getY() < minPoint.getX()){
-       minPoint = points.get(i);
-     }
+   if(points.size() < 3){
+     convexHull = (ArrayList)points.clone();
+     return;
    }
+
+   int minP = -1, maxP = -1;
+       int minX = Integer.MAX_VALUE;
+       int maxX = Integer.MIN_VALUE;
+       for (int i = 0; i < points.size(); i++){
+           if (points.get(i).getX() < minX){
+               minX = points.get(i).getX();
+               minP = i;
+           }
+
+           if (points.get(i).getX() > maxX){
+               maxX = points.get(i).getX();
+               maxP = i;
+           }
+       }
+
+   Point maxPoint = points.get(maxP);
+   Point minPoint = points.get(minP);
 
    convexHull.add(maxPoint);
    convexHull.add(minPoint);
@@ -53,21 +73,8 @@ public class SimulationView extends JPanel{
    points.remove(maxPoint);
    points.remove(minPoint);
 
-   // double slope = ((double)(maxPoint.getX() - minPoint.getX()) / (double)(maxPoint.getY() - minPoint.getY()));
-   // double xi = slope*maxPoint.getX();
-   // double yi = slope*maxPoint.getY();
-
    ArrayList<Point> s1 = new ArrayList<Point>();
    ArrayList<Point> s2 = new ArrayList<Point>();
-
-   // for (int i = 0; i < points.size(); i++){
-   //   // double y = slope*points.get(i).getX() - xi + yi;
-   //   double y = getYRect(maxPoint, minPoint, points.get(i));
-   //   if((!points.get(i).isEqual(maxPoint))&&(!points.get(i).isEqual(minPoint)))
-   //   if(points.get(i).getY() > y){
-   //     s1.add(points.get(i));
-   //   }else s2.add(points.get(i));
-   // }
 
    for (int i = 0; i < points.size(); i++){
      if (pointLocation(minPoint, maxPoint, points.get(i)) == -1){
@@ -79,11 +86,10 @@ public class SimulationView extends JPanel{
 
    findHull(convexHull, s2, minPoint, maxPoint);
    findHull(convexHull, s1, maxPoint, minPoint);
+   // hullSet(minPoint, maxPoint, s2, convexHull);
+   // hullSet(maxPoint, minPoint, s1, convexHull);
 
-
-   for(int i = 0; i < convexHull.size(); i++){
-     System.out.println(convexHull.get(i));
-   }
+   repaint();
 
  }
 
@@ -159,6 +165,110 @@ public class SimulationView extends JPanel{
 
  }
 
+//  public void quickHull()
+//    {
+//        this.convexHull = new ArrayList<Point>();
+//        if (points.size() < 3){
+//            this.convexHull = (ArrayList) points.clone();
+//            return;
+//          }
+//
+//        int minPoint = -1, maxPoint = -1;
+//        int minX = Integer.MAX_VALUE;
+//        int maxX = Integer.MIN_VALUE;
+//        for (int i = 0; i < points.size(); i++)
+//        {
+//            if (points.get(i).getX() < minX)
+//            {
+//                minX = points.get(i).getX();
+//                minPoint = i;
+//            }
+//            if (points.get(i).getX() > maxX)
+//            {
+//                maxX = points.get(i).getX();
+//                maxPoint = i;
+//            }
+//        }
+//        Point A = points.get(minPoint);
+//        Point B = points.get(maxPoint);
+//        convexHull.add(A);
+//        convexHull.add(B);
+//        points.remove(A);
+//        points.remove(B);
+//
+//        ArrayList<Point> leftSet = new ArrayList<Point>();
+//        ArrayList<Point> rightSet = new ArrayList<Point>();
+//
+//        for (int i = 0; i < points.size(); i++)
+//        {
+//            Point p = points.get(i);
+//            if (pointLocation(A, B, p) == -1)
+//                leftSet.add(p);
+//            else if (pointLocation(A, B, p) == 1)
+//                rightSet.add(p);
+//        }
+//        hullSet(A, B, rightSet, convexHull);
+//        hullSet(B, A, leftSet, convexHull);
+//
+//        repaint();
+//    }
+// //
+// public void hullSet(Point A, Point B, ArrayList<Point> set,
+//         ArrayList<Point> hull)
+// {
+//     int insertPosition = hull.indexOf(B);
+//     if (set.size() == 0)
+//         return;
+//     if (set.size() == 1)
+//     {
+//         Point p = set.get(0);
+//         set.remove(p);
+//         hull.add(insertPosition, p);
+//         return;
+//     }
+//     int dist = Integer.MIN_VALUE;
+//     int furthestPoint = -1;
+//     for (int i = 0; i < set.size(); i++)
+//     {
+//         Point p = set.get(i);
+//         int distance = distance(A, B, p);
+//         if (distance > dist)
+//         {
+//             dist = distance;
+//             furthestPoint = i;
+//         }
+//     }
+//     Point P = set.get(furthestPoint);
+//     set.remove(furthestPoint);
+//     hull.add(insertPosition, P);
+//
+//     // Determine who's to the left of AP
+//     ArrayList<Point> leftSetAP = new ArrayList<Point>();
+//     for (int i = 0; i < set.size(); i++)
+//     {
+//         Point M = set.get(i);
+//         if (pointLocation(A, P, M) == 1)
+//         {
+//             leftSetAP.add(M);
+//         }
+//     }
+//
+//     // Determine who's to the left of PB
+//     ArrayList<Point> leftSetPB = new ArrayList<Point>();
+//     for (int i = 0; i < set.size(); i++)
+//     {
+//         Point M = set.get(i);
+//         if (pointLocation(P, B, M) == 1)
+//         {
+//             leftSetPB.add(M);
+//         }
+//     }
+//     hullSet(A, P, leftSetAP, hull);
+//     hullSet(P, B, leftSetPB, hull);
+//
+// }
+//
+//
   public void drawPoint(int numberOfPoints){
 
     for (int i = 0; i < numberOfPoints; i++){
@@ -192,16 +302,16 @@ public class SimulationView extends JPanel{
     points.add(new Point(10,8,0));
     points.add(new Point(10,4,0));
 
-    // points.add(new Point(0,5,0));
-    // points.add(new Point(2,0,0));
-    // points.add(new Point(5,2,0));
-    // points.add(new Point(3,3,0));
-    // points.add(new Point(3,8,0));
-
 
   }
 
 
+  public void print(){
+
+    for(int i = 0; i < convexHull.size(); i++){
+      System.out.println("P-> " + convexHull.get(i));
+    }
+  }
 
   public static void main(String args[]){
 
