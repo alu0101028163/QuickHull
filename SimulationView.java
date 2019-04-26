@@ -50,6 +50,9 @@ public class SimulationView extends JPanel{
    convexHull.add(maxPoint);
    convexHull.add(minPoint);
 
+   points.remove(maxPoint);
+   points.remove(minPoint);
+
    // double slope = ((double)(maxPoint.getX() - minPoint.getX()) / (double)(maxPoint.getY() - minPoint.getY()));
    // double xi = slope*maxPoint.getX();
    // double yi = slope*maxPoint.getY();
@@ -57,93 +60,102 @@ public class SimulationView extends JPanel{
    ArrayList<Point> s1 = new ArrayList<Point>();
    ArrayList<Point> s2 = new ArrayList<Point>();
 
-   for (int i = 0; i < points.size(); i++){
-     // double y = slope*points.get(i).getX() - xi + yi;
-     double y = getYRect(maxPoint, minPoint, points.get(i));
-     if((!points.get(i).isEqual(maxPoint))&&(!points.get(i).isEqual(minPoint)))
-     if(points.get(i).getY() > y){
-       s1.add(points.get(i));
-     }else s2.add(points.get(i));
-   }
-
-   findHull(convexHull, s1, minPoint, maxPoint);
-   findHull(convexHull, s2, minPoint, maxPoint);
-
-   System.out.println("FIRST SET");
-   for (int i = 0; i < s1.size(); i++){
-     System.out.println(s1.get(i));
-   }
-
-   System.out.println("SECOND SET");
-   for (int i = 0; i < s2.size(); i++){
-     System.out.println(s2.get(i));
-   }
-
-   // for(int i = 0; i < convexHull.size(); i++){
-   //   System.out.println(convexHull.get(i));
+   // for (int i = 0; i < points.size(); i++){
+   //   // double y = slope*points.get(i).getX() - xi + yi;
+   //   double y = getYRect(maxPoint, minPoint, points.get(i));
+   //   if((!points.get(i).isEqual(maxPoint))&&(!points.get(i).isEqual(minPoint)))
+   //   if(points.get(i).getY() > y){
+   //     s1.add(points.get(i));
+   //   }else s2.add(points.get(i));
    // }
 
+   for (int i = 0; i < points.size(); i++){
+     if (pointLocation(minPoint, maxPoint, points.get(i)) == -1){
+       s1.add(points.get(i));
+     } else if (pointLocation(minPoint, maxPoint, points.get(i)) == 1){
+       s2.add(points.get(i));
+     }
+   }
+
+   findHull(convexHull, s2, minPoint, maxPoint);
+   findHull(convexHull, s1, maxPoint, minPoint);
+
+
+   for(int i = 0; i < convexHull.size(); i++){
+     System.out.println(convexHull.get(i));
+   }
+
  }
 
- public static double getYRect(Point a, Point b, Point p){
-   double slope = ((double)(a.getX() - b.getX()) / (double)(a.getY() -   b.getY()));
-   double xi = slope*a.getX();
-   double yi = a.getY();
-   double y = slope*p.getX() - xi + yi;
-   return y;
- }
 
- public static double getXRect(Point a, Point b, Point p){
-   double slope = ((double)(a.getX() - b.getX()) / (double)(a.getY() - b.getY()));
-   double yi = a.getY();
-   double xi = a.getX();
-   double x = (( p.getY() - yi) / slope) + xi;
-   return x;
+  public int pointLocation(Point a, Point b, Point p)
+  {
+      int cp1 = (b.getX() - a.getX()) * (p.getY() - a.getY()) - (b.getY() - a.getY()) * (p.getX() - a.getX());
+      if (cp1 > 0)
+          return 1;
+      else if (cp1 == 0)
+          return 0;
+      else
+          return -1;
+  }
+
+
+ public int distance(Point A, Point B, Point C)
+ {
+     int ABx = B.getX() - A.getX();
+     int ABy = B.getY() - A.getY();
+     int num = ABx * (A.getY() - C.getY()) - ABy * (A.getX() - C.getX());
+     if (num < 0)
+         num = -num;
+     return num;
  }
 
  public void findHull(ArrayList<Point> convexHull, ArrayList<Point> sk, Point minPoint, Point maxPoint){
 
+   int insertPosition = convexHull.indexOf(maxPoint);
 
    if(sk.size() == 0){
      return;
    }
 
-   double slope = ((double)(maxPoint.getX() - minPoint.getX()) / (double)(maxPoint.getY() - minPoint.getY()));
-   double xi = slope*maxPoint.getX();
-   double yi = slope*maxPoint.getY();
+   if(sk.size() == 1){
+     Point p = sk.get(0);
+     convexHull.add(insertPosition,p);
+     sk.remove(p);
+     return;
+   }
 
-   Point farestPoint = new Point(-999999, -999999, 0);
-
-   for (int i = 0; i < sk.size(); i++){
-     double y = slope*sk.get(i).getX() - xi + yi;
-     if((sk.get(i).getY() - y) > farestPoint.getY()){
-       farestPoint = sk.get(i);
+   int maxDistance = -9999999;
+   int furthestP = -1;
+   for(int i = 0; i < sk.size(); i++){
+     if(distance(minPoint, maxPoint, sk.get(i)) > maxDistance){
+        maxDistance = distance(minPoint, maxPoint, sk.get(i));
+        furthestP = i;
      }
    }
 
-   convexHull.add(farestPoint);
+   Point furthestPoint = sk.get(furthestP);
+   sk.remove(furthestP);
+   convexHull.add(insertPosition,furthestPoint);
 
    ArrayList<Point> s1 = new ArrayList<Point>();
    ArrayList<Point> s2 = new ArrayList<Point>();
 
 
-   // double y = slope*farestPoint.get(i).getX() - xi + yi;
-   //
-   // if(farestPoint.getY() < y){
-   //
-   //   for(int i = 0; i < sk.size(); i++){
-   //     if (sk.get(i).getY() < y){
-   //
-   //     }
-   //   }
-   //
-   //
-   // }else{
-   //
-   // }
+   for (int i = 0; i < sk.size(); i++){
+     if(pointLocation(minPoint, furthestPoint, sk.get(i)) == 1){
+       s1.add(sk.get(i));
+     }
+   }
 
-   findHull(convexHull, s1, minPoint, farestPoint);
-   findHull(convexHull, s2, maxPoint, farestPoint);
+   for (int i = 0; i < sk.size(); i++){
+     if( pointLocation(furthestPoint, maxPoint, sk.get(i)) == 1){
+       s2.add(sk.get(i));
+     }
+   }
+
+   findHull(convexHull, s1, minPoint, furthestPoint);
+   findHull(convexHull, s2, furthestPoint, maxPoint);
 
  }
 
@@ -162,29 +174,29 @@ public class SimulationView extends JPanel{
   }
 
   public void setPoints(){
-    // points.add(new Point(0,5,0));
-    // points.add(new Point(1,1,0));
-    // points.add(new Point(2,3,0));
-    // points.add(new Point(2,9,0));
-    // points.add(new Point(3,2,0));
-    // points.add(new Point(3,4,0));
-    // points.add(new Point(3,7,0));
-    // points.add(new Point(3,2,0));
-    // points.add(new Point(5,1,0));
-    // points.add(new Point(5,4,0));
-    // points.add(new Point(5,6,0));
-    // points.add(new Point(6,10,0));
-    // points.add(new Point(7,7,0));
-    // points.add(new Point(7,4,0));
-    // points.add(new Point(8,2,0));
-    // points.add(new Point(10,8,0));
-    // points.add(new Point(10,4,0));
-
     points.add(new Point(0,5,0));
-    points.add(new Point(2,0,0));
-    points.add(new Point(5,2,0));
-    points.add(new Point(3,3,0));
-    points.add(new Point(3,8,0));
+    points.add(new Point(1,1,0));
+    points.add(new Point(2,3,0));
+    points.add(new Point(2,9,0));
+    points.add(new Point(3,2,0));
+    points.add(new Point(3,4,0));
+    points.add(new Point(3,7,0));
+    points.add(new Point(3,2,0));
+    points.add(new Point(5,1,0));
+    points.add(new Point(5,4,0));
+    points.add(new Point(5,6,0));
+    points.add(new Point(6,10,0));
+    points.add(new Point(7,7,0));
+    points.add(new Point(7,4,0));
+    points.add(new Point(8,2,0));
+    points.add(new Point(10,8,0));
+    points.add(new Point(10,4,0));
+
+    // points.add(new Point(0,5,0));
+    // points.add(new Point(2,0,0));
+    // points.add(new Point(5,2,0));
+    // points.add(new Point(3,3,0));
+    // points.add(new Point(3,8,0));
 
 
   }
