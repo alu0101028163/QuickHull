@@ -9,6 +9,7 @@ public class SimulationView extends JPanel{
 
   ArrayList<Point> points = new ArrayList<Point>();
   ArrayList<Point> convexHull = new ArrayList<Point>();
+  ArrayList<Point> segments = new ArrayList<Point>();
 
   final int xSize;
   final int ySize;

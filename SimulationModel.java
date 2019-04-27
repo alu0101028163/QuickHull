@@ -12,6 +12,8 @@ public class SimulationModel implements Runnable{
 
   ArrayList<Point> convexHull;
   ArrayList<Point> points;
+  ArrayList<Point> segments;
+
   boolean finished;
   boolean stopped;
 

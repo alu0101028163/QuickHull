@@ -5,9 +5,9 @@ import java.awt.event.KeyEvent.*;
 import java.util.*;
 import javax.swing.Timer;
 import javax.swing.event.*;
+import java.applet.*;
 
-
-public class QuickHull extends JFrame{
+public class QuickHullApplet extends Applet{
 
    final int xSize = 1200;
    final int ySize = 700;
@@ -25,7 +25,7 @@ public class QuickHull extends JFrame{
    public static int speed;
 
 
-  public QuickHull(){
+  public QuickHullApplet(){
     this.simulationView = new SimulationView(xSize, ySize);
     this.simulationController = new SimulationController(xSize, ySize);
     this.simulationModel = new SimulationModel(simulationView.points, simulationView.convexHull);
@@ -33,7 +33,7 @@ public class QuickHull extends JFrame{
 
     this.started = false;
     this.finished = false;
-    QuickHull.speed = 1000;
+    QuickHullApplet.speed = 1000;
   }
 
   public JButton createPointButton(String buttonName, int numberOfPoints){
@@ -77,7 +77,7 @@ public class QuickHull extends JFrame{
     JButton b = new JButton("ConvexHull");
     b.addActionListener(new ActionListener(){
       public void actionPerformed(ActionEvent click){
-        QuickHull.started = true;
+        QuickHullApplet.started = true;
         simulationModelThread.start();
       }
     });
@@ -85,9 +85,9 @@ public class QuickHull extends JFrame{
     this.speedSlider = new JSlider(0,5000,1000);
     this.speedSlider.addChangeListener(new ChangeListener(){
       public void stateChanged(ChangeEvent event) {
-        QuickHull.speed = 5000 - speedSlider.getValue();
-        timer.setDelay(QuickHull.speed);
-        System.out.println("Changing speed to: " + QuickHull.speed );
+        QuickHullApplet.speed = 5000 - speedSlider.getValue();
+        timer.setDelay(QuickHullApplet.speed);
+        System.out.println("Changing speed to: " + QuickHullApplet.speed );
       }
     });
 
@@ -97,37 +97,30 @@ public class QuickHull extends JFrame{
 
   }
 
-  public static void main(String args[]){
+    public void init(){
 
 
-    QuickHull frame = new QuickHull();
-    frame.setLocationRelativeTo(null);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.getContentPane().setLayout(new BoxLayout(frame.getContentPane(), BoxLayout.Y_AXIS));
-    frame.getContentPane().setBackground(Color.white);
-    frame.setSize(frame.xSize,frame.ySize);
-    frame.add(frame.simulationView);
-    frame.add(frame.simulationController);
-    frame.addButtons();
-    frame.setVisible(true);
+      add(this.simulationView);
+      add(this.simulationController);
+      addButtons();
 
-    frame.timer = new Timer(QuickHull.speed,new ActionListener(){
-      public void actionPerformed(ActionEvent e) {
-      if(QuickHull.finished){
-          ((Timer)e.getSource()).stop();
-      } else {
-          if(QuickHull.started){
-            finished = frame.simulationModel.resume();
-            frame.simulationView.repaint();
+      this.timer = new Timer(QuickHullApplet.speed,new ActionListener(){
+          public void actionPerformed(ActionEvent e) {
+          if(QuickHullApplet.finished){
+              ((Timer)e.getSource()).stop();
+          } else {
+              if(QuickHullApplet.started){
+                finished = simulationModel.resume();
+                simulationView.repaint();
+              }
+            }
           }
-        }
+        });
+
+        this.timer.setRepeats(true);
+        this.timer.start();
     }
-  });
 
-    frame.timer.setRepeats(true);
-    frame.timer.start();
-
-  }
 
 
 }
