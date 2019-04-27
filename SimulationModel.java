@@ -47,6 +47,7 @@ public class SimulationModel implements Runnable{
 
     if(points.size() < 3){
       convexHull = (ArrayList)points.clone();
+      finished = true;
       return;
     }
 
